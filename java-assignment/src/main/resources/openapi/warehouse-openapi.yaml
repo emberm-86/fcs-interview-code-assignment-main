@@ -45,7 +45,8 @@ paths:
           required: true
           description: ID of the warehouse unit to get
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: Warehouse unit found
@@ -63,7 +64,8 @@ paths:
           required: true
           description: ID of the warehouse unit to archive
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '204':
           description: Warehouse unit archived
@@ -71,7 +73,7 @@ paths:
           description: Warehouse unit not found
 
   /warehouse/{businessUnitCode}/replacement:
-    post:
+    put:
       summary: Replace the current active Warehouse
       description: | 
         Replaces the current active Warehouse identified by `businessUnitCode` unit by a new Warehouse provided in the request body

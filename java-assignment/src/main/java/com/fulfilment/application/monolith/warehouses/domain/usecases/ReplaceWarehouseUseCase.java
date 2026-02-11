@@ -1,5 +1,7 @@
 package com.fulfilment.application.monolith.warehouses.domain.usecases;
 
+import com.fulfilment.application.monolith.exception.ResourceNotFoundException;
+import com.fulfilment.application.monolith.exception.ValidationException;
 import com.fulfilment.application.monolith.warehouses.domain.models.Warehouse;
 import com.fulfilment.application.monolith.warehouses.domain.ports.ReplaceWarehouseOperation;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
@@ -16,8 +18,19 @@ public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
 
   @Override
   public void replace(Warehouse newWarehouse) {
-    // TODO implement this method
+    if (newWarehouse == null) {
+      throw new ValidationException("Warehouse cannot be null");
+    }
 
-    warehouseStore.update(newWarehouse);
+    Warehouse existing =
+            warehouseStore.findByBusinessUnitCode(newWarehouse.businessUnitCode);
+
+    if (existing == null) {
+      throw new ResourceNotFoundException("Warehouse not found!");
+    }
+
+    existing.replaceWith(newWarehouse);
+
+    warehouseStore.update(existing);
   }
 }
