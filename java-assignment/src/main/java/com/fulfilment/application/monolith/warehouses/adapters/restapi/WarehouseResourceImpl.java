@@ -44,13 +44,17 @@ public class WarehouseResourceImpl implements WarehouseResource {
     String businessUnitCode = data.getBusinessUnitCode();
 
     if (StringUtils.isBlank(businessUnitCode)) {
-      throw new WebApplicationException("Business Unit Code cannot be empty for warehouse", 422);
+      throw new WebApplicationException("Business Unit Code cannot be empty for a warehouse!", 422);
     }
 
     Location location = locationResolver.resolveByIdentifier(data.getLocation());
 
     if (Objects.isNull(location)) {
-      throw new WebApplicationException("Valid location should be defined for warehouse", 422);
+      throw new WebApplicationException("Valid location should be defined for a warehouse!", 422);
+    }
+
+    if (location.maxNumberOfWarehouses == warehouseRepository.countWareHousesByLocationId(location.identification)) {
+      throw new WebApplicationException("Maximum number of warehouses reached, cannot create a new one!", 422);
     }
 
     com.fulfilment.application.monolith.warehouses.domain.models.Warehouse
@@ -78,10 +82,9 @@ public class WarehouseResourceImpl implements WarehouseResource {
 
     DbWarehouse byId = warehouseRepository.findById(Long.valueOf(id));
 
-    if (Objects.isNull(byId)) {
-      return;
+    if (!Objects.isNull(byId)) {
+      warehouseRepository.remove(warehouseMapper.fromEntityToModel(byId));
     }
-    warehouseRepository.remove(warehouseMapper.fromEntityToModel(byId));
   }
 
   @Override

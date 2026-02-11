@@ -53,6 +53,12 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
     return warehouseMapper.fromEntityToModel(dbWarehouse);
   }
 
+  public long countWareHousesByLocationId(String locationId) {
+    return getAll().stream()
+            .filter(warehouse -> warehouse.location.equals(locationId))
+            .count();
+  }
+
   private DbWarehouse getDbWarehouseByBusinessUnitCode(String warehouse) {
     return this.listAll().stream()
             .filter(it -> it.businessUnitCode.equals(warehouse))
