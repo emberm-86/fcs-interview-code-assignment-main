@@ -17,7 +17,8 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import org.apache.commons.lang.StringUtils;
-import org.jboss.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +26,7 @@ import java.util.Objects;
 @RequestScoped
 public class WarehouseResourceImpl implements WarehouseResource {
 
-  private static final Logger LOGGER = Logger.getLogger(WarehouseResource.class.getName());
+  private static final Logger LOGGER = LoggerFactory.getLogger(WarehouseResource.class);
 
   @Inject private WarehouseRepository warehouseRepository;
   @Inject private WareHouseMapper warehouseMapper;

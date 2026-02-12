@@ -18,8 +18,10 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
-import org.jboss.logging.Logger;
 
 @Path("store")
 @ApplicationScoped
@@ -29,7 +31,7 @@ public class StoreResource {
 
   @Inject LegacyStoreManagerGateway legacyStoreManagerGateway;
 
-  private static final Logger LOGGER = Logger.getLogger(StoreResource.class.getName());
+  private static final Logger LOGGER = LoggerFactory.getLogger(StoreResource.class);
 
   @GET
   public List<Store> get() {
