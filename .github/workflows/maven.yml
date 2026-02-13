@@ -52,9 +52,7 @@ jobs:
           sleep 2
         done
     - name: Build with Maven
-      run: mvn -B verify
-      with:
-        directory: java-assignment
+      run: mvn -B verify -f java-assignment/pom.xml
       env:
         QUARKUS_PROFILE: test
         QUARKUS_DATASOURCE_DB_KIND: postgresql
