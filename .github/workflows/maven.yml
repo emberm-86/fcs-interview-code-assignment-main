@@ -15,8 +15,7 @@ on:
     branches: [ "master" ]
 
 permissions:
-  contents: read
-  security-events: write
+  contents: write
 
 jobs:
   build:
