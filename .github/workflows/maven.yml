@@ -38,6 +38,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Set Github output
+      run: echo "KEY=VALUE" >>$GITHUB_OUTPUT
     - name: Print token permissions
       run: |
         curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
