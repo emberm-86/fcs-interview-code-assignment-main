@@ -50,7 +50,7 @@ jobs:
         cache: maven
     - name: Wait for Postgres
       run: |
-        echo "Waiting for Postgres..."
+        echo "Waiting for Postgres..." >> $GITHUB_OUTPUT
         until pg_isready -h localhost -p 15432 -U quarkus_test; do
           sleep 2
         done
