@@ -11,7 +11,7 @@ public interface WarehouseStore {
 
   void update(Warehouse warehouse);
 
-  void remove(Warehouse warehouse);
+  void removeById(String id);
 
   Warehouse findByBusinessUnitCode(String buCode);
 }

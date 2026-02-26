@@ -6,7 +6,6 @@ import com.fulfilment.application.monolith.warehouses.adapters.database.DbWareho
 import com.fulfilment.application.monolith.warehouses.adapters.database.WarehouseRepository;
 import com.fulfilment.application.monolith.warehouses.domain.models.Location;
 import com.fulfilment.application.monolith.warehouses.domain.ports.LocationResolver;
-import com.fulfilment.application.monolith.warehouses.mappers.WareHouseMapper;
 import com.warehouse.api.WarehouseResource;
 import com.warehouse.api.beans.Warehouse;
 import jakarta.enterprise.context.RequestScoped;
@@ -26,18 +25,14 @@ import java.util.Objects;
 @RequestScoped
 public class WarehouseResourceImpl implements WarehouseResource {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(WarehouseResource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(WarehouseResourceImpl.class);
 
   @Inject private WarehouseRepository warehouseRepository;
-  @Inject private WareHouseMapper warehouseMapper;
   @Inject private LocationResolver locationResolver;
 
   @Override
   public List<Warehouse> listAllWarehousesUnits() {
-     // return warehouseRepository.getAll().stream().map(this::toWarehouseResponse).toList();
-    return warehouseRepository.getAll().stream()
-            .map(warehouseMapper::fromModelToResponse)
-            .toList();
+    return warehouseRepository.getAll().stream().map(this::toWarehouseResponse).toList();
   }
 
   @Override
@@ -65,14 +60,14 @@ public class WarehouseResourceImpl implements WarehouseResource {
       throw new WebApplicationException("Warehouse with Business Unit Code: " + businessUnitCode + " already exists.", 409);
     }
 
-    warehouseRepository.create(warehouseMapper.fromRequestToModel(data));
+    warehouseRepository.create(fromWarehouseRequestToModel(data));
     return data;
   }
 
   @Override
   public Warehouse getAWarehouseUnitByID(String id) {
     DbWarehouse byId = warehouseRepository.findById(Long.valueOf(id));
-    return warehouseMapper.fromModelToResponse(warehouseMapper.fromEntityToModel(byId));
+    return toWarehouseResponse(byId.toWarehouse());
   }
 
   @Override
@@ -80,12 +75,7 @@ public class WarehouseResourceImpl implements WarehouseResource {
     if (StringUtils.isBlank(id)) {
       throw new WebApplicationException("Id cannot be empty", 422);
     }
-
-    DbWarehouse byId = warehouseRepository.findById(Long.valueOf(id));
-
-    if (!Objects.isNull(byId)) {
-      warehouseRepository.remove(warehouseMapper.fromEntityToModel(byId));
-    }
+    warehouseRepository.removeById(id);
   }
 
   @Override
@@ -108,14 +98,18 @@ public class WarehouseResourceImpl implements WarehouseResource {
       throw new WebApplicationException("Warehouse with businessUnitCode of " + businessUnitCode + " does not exist.", 404);
     }
 
-    com.fulfilment.application.monolith.warehouses.domain.models.Warehouse newWarehouse = warehouseMapper.fromRequestToModel(data);
-    warehouseMapper.updateModel(newWarehouse, existingWarehouse);
+    com.fulfilment.application.monolith.warehouses.domain.models.Warehouse newWarehouse = fromWarehouseRequestToModel(data);
+
+    existingWarehouse.businessUnitCode = newWarehouse.businessUnitCode;
+    existingWarehouse.location = newWarehouse.location;
+    existingWarehouse.capacity = newWarehouse.capacity;
+    existingWarehouse.stock = newWarehouse.stock;
+
     warehouseRepository.update(existingWarehouse);
 
-    return warehouseMapper.fromModelToResponse(existingWarehouse);
+    return toWarehouseResponse(existingWarehouse);
   }
 
-  /*
   private Warehouse toWarehouseResponse(
       com.fulfilment.application.monolith.warehouses.domain.models.Warehouse warehouse) {
     var response = new Warehouse();
@@ -126,7 +120,18 @@ public class WarehouseResourceImpl implements WarehouseResource {
     response.setStock(warehouse.stock);
 
     return response;
-  }*/
+  }
+
+  private com.fulfilment.application.monolith.warehouses.domain.models.Warehouse fromWarehouseRequestToModel(Warehouse request) {
+    var warehouse = new com.fulfilment.application.monolith.warehouses.domain.models.Warehouse();
+
+    warehouse.businessUnitCode = request.getBusinessUnitCode();
+    warehouse.location = request.getLocation();
+    warehouse.capacity = request.getCapacity();
+    warehouse.stock = request.getStock();
+
+    return warehouse;
+  }
 
   @Provider
   public static class ErrorMapper implements ExceptionMapper<Exception> {

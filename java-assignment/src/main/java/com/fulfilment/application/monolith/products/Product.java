@@ -1,17 +1,22 @@
 package com.fulfilment.application.monolith.products;
 
-import jakarta.persistence.Cacheable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 
 @Entity
 @Cacheable
 public class Product {
 
-  @Id @GeneratedValue public Long id;
+  // @Id @GeneratedValue public Long id;
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_seq")
+  @SequenceGenerator(
+          name = "product_seq",
+          sequenceName = "product_seq",
+          allocationSize = 1
+  ) public Long id;
 
   @Column(length = 40, unique = true)
   public String name;

@@ -9,9 +9,9 @@ public class Warehouse {
 
   public String location;
 
-  public Integer capacity;
+  public int capacity;
 
-  public Integer stock;
+  public int stock;
 
   public LocalDateTime createdAt;
 

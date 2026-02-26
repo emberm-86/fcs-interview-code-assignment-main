@@ -10,15 +10,14 @@ import org.junit.jupiter.api.Test;
 @QuarkusIntegrationTest
 public class WarehouseEndpointIT {
 
+  private static final String ENDPOINT_PATH = "warehouse";
+
   @Test
   public void testSimpleListWarehouses() {
-
-    final String path = "warehouse";
-
     // List all, should have all 3 products the database has initially:
     given()
         .when()
-        .get(path)
+        .get(ENDPOINT_PATH)
         .then()
         .statusCode(200)
         .body(containsString("MWH.001"), containsString("MWH.012"), containsString("MWH.023"));
@@ -26,15 +25,10 @@ public class WarehouseEndpointIT {
 
   @Test
   public void testSimpleCheckingArchivingWarehouses() {
-
-    // Uncomment the following lines to test the WarehouseResourceImpl implementation
-
-    final String path = "warehouse";
-
     // List all, should have all 3 products the database has initially:
     given()
         .when()
-        .get(path)
+        .get(ENDPOINT_PATH)
         .then()
         .statusCode(200)
         .body(
@@ -46,12 +40,12 @@ public class WarehouseEndpointIT {
             containsString("TILBURG-001"));
 
     // // Archive the ZWOLLE-001:
-    given().when().delete(path + "/1").then().statusCode(204);
+    given().when().delete(ENDPOINT_PATH + "/1").then().statusCode(204);
 
     // // List all, ZWOLLE-001 should be missing now:
     given()
         .when()
-        .get(path)
+        .get(ENDPOINT_PATH)
         .then()
         .statusCode(200)
         .body(
@@ -62,15 +56,10 @@ public class WarehouseEndpointIT {
 
   @Test
   public void testCreateWarehouse() {
-
-    // Uncomment the following lines to test the WarehouseResourceImpl implementation
-
-    final String path = "warehouse";
-
     // List all, should have all 3 products the database has initially:
     given()
             .when()
-            .get(path)
+            .get(ENDPOINT_PATH)
             .then()
             .statusCode(200)
             .body(
@@ -82,12 +71,12 @@ public class WarehouseEndpointIT {
                     containsString("TILBURG-001"));
 
     // // Archive the ZWOLLE-001:
-    given().when().delete(path + "/1").then().statusCode(204);
+    given().when().delete(ENDPOINT_PATH + "/1").then().statusCode(204);
 
     // // List all, ZWOLLE-001 should be missing now:
     given()
             .when()
-            .get(path)
+            .get(ENDPOINT_PATH)
             .then()
             .statusCode(200)
             .body(
