@@ -12,8 +12,6 @@ public class FreshDbProfile implements QuarkusTestProfile {
         return Map.of(
                 "quarkus.datasource.db-kind",
                 "h2",
-                "quarkus.datasource.driver",
-                "org.h2.Driver",
                 "quarkus.datasource.jdbc.url",
                 "jdbc:h2:mem:test-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1",
                 "quarkus.hibernate-orm.database.generation",
