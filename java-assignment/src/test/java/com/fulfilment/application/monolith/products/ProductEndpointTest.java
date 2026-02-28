@@ -4,15 +4,17 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.IsNot.not;
 
+import com.fulfilment.application.monolith.db.FreshDbProfile;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@TestProfile(FreshDbProfile.class)
 public class ProductEndpointTest {
 
   private static final String ENDPOINT = "product";
@@ -20,34 +22,40 @@ public class ProductEndpointTest {
   @Inject
   ProductRepository productRepository;
 
+  private Long tonstadId;
+  private Long kallaxId;
+  private Long bestaId;
+
+  // ============================
+  // Initialize test data
+  // ============================
   @BeforeEach
-  public void initTestData() {
-    createProduct("TONSTAD", 20);
-    createProduct("KALLAX", 10);
-    createProduct("BESTÅ", 15);
+  @Transactional
+  void setUp() {
+    productRepository.deleteAll();
+
+    tonstadId = persist("TONSTAD", 20);
+    kallaxId = persist("KALLAX", 10);
+    bestaId = persist("BESTÅ", 15);
   }
 
-  @AfterEach
-  @Transactional
-  public void cleanUpTestData() {
-    productRepository.deleteAll();
-    productRepository.getEntityManager()
-            .createNativeQuery("ALTER SEQUENCE product_seq RESTART WITH 1")
-            .executeUpdate();
-    productRepository.flush();
-  }
+  // ============================
+  // Tests
+  // ============================
 
   @Test
   public void testDeleteProduct() {
-    // Verify initial products exist
     given()
             .when().get(ENDPOINT)
             .then()
             .statusCode(200)
-            .body(containsString("TONSTAD"), containsString("KALLAX"), containsString("BESTÅ"));
+            .body(containsString("TONSTAD"))
+            .body(containsString("KALLAX"))
+            .body(containsString("BESTÅ"));
 
-    // Delete TONSTAD
-    given().when().delete(ENDPOINT + "/1").then().statusCode(204);
+    // Delete TONSTAD using captured ID
+    given().when().delete(ENDPOINT + "/" + tonstadId)
+            .then().statusCode(204);
 
     // Verify TONSTAD is removed
     given()
@@ -64,22 +72,24 @@ public class ProductEndpointTest {
     String newProductJson = """
                 {
                     "name": "BARLAST",
-                    "description": null,
+                    "description": "Storage system",
                     "price": null,
                     "stock": 15
                 }
                 """;
 
-    // Add new product
-    given()
+    Long barlastId = given()
             .contentType(ContentType.JSON)
             .body(newProductJson)
             .when()
             .post(ENDPOINT)
             .then()
-            .statusCode(201);
+            .statusCode(201)
+            .extract()
+            .jsonPath()
+            .getLong("id"); // safely extract as Long
 
-    // Verify new product exists along with initial products
+    // Verify all products exist including new one
     given()
             .when().get(ENDPOINT)
             .then()
@@ -94,20 +104,19 @@ public class ProductEndpointTest {
   public void testUpdateProduct() {
     String updateJson = """
                 {
-                    "id": 1,
+                    "id": %d,
                     "name": "BARLAST",
                     "description": "Storage system",
                     "price": null,
                     "stock": 15
                 }
-                """;
+                """.formatted(tonstadId);
 
-    // Update product
     given()
             .contentType(ContentType.JSON)
             .body(updateJson)
             .when()
-            .put(ENDPOINT + "/1")
+            .put(ENDPOINT + "/" + tonstadId)
             .then()
             .statusCode(200);
 
@@ -120,24 +129,16 @@ public class ProductEndpointTest {
             .body(containsString("Storage system"));
   }
 
-  /** Helper to create a product and assert it was created */
-  private void createProduct(String name, int stock) {
-    String productJson = """
-                {
-                    "name": "%s",
-                    "description": null,
-                    "price": null,
-                    "stock": %d
-                }
-                """.formatted(name, stock);
-
-    given()
-            .contentType(ContentType.JSON)
-            .body(productJson)
-            .when()
-            .post(ENDPOINT)
-            .then()
-            .statusCode(201)
-            .extract().path("id");
+  // ============================
+  // Helper: Create product and return ID
+  // ============================
+  private Long persist(String name, int stock) {
+    Product p = new Product();
+    p.name = name;
+    p.description = null;
+    p.price = null;
+    p.stock = stock;
+    productRepository.persist(p);
+    return p.id;
   }
 }

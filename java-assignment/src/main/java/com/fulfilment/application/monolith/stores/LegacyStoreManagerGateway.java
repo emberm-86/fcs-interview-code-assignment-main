@@ -3,53 +3,89 @@ package com.fulfilment.application.monolith.stores;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.logging.Logger;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 @ApplicationScoped
 public class LegacyStoreManagerGateway {
 
-  private static final Logger LOGGER = Logger.getLogger(LegacyStoreManagerGateway.class.getName());
+  private static final Logger LOGGER =
+          Logger.getLogger(LegacyStoreManagerGateway.class.getName());
 
   public void createStoreOnLegacySystem(Store store) {
-    // just to emulate as this would send this to a legacy system, let's write a temp file with the
-    writeToFile(store);
+    LOGGER.infof("Syncing CREATED store to legacy system. id=%d, name=%s",
+            store.id, store.name);
+
+    writeToFile("CREATED", store);
   }
 
   public void updateStoreOnLegacySystem(Store store) {
-    // just to emulate as this would send this to a legacy system, let's write a temp file with the
-    writeToFile(store);
+    LOGGER.infof("Syncing UPDATED store to legacy system. id=%d, name=%s",
+            store.id, store.name);
+
+    writeToFile("UPDATED", store);
   }
 
-  private void writeToFile(Store store) {
+  public void deleteStoreOnLegacySystem(Long id) {
+    LOGGER.infof("Syncing DELETED store to legacy system. id=%d", id);
+
     try {
-      // Step 1: Create a temporary file
-      Path tempFile;
+      Path tempFile = Files.createTempFile("store-deleted-" + id, ".txt");
 
-      tempFile = Files.createTempFile(store.name, ".txt");
+      String content = "Store deleted. [ id =" + id + " ]";
 
-      System.out.println("Temporary file created at: " + tempFile.toString());
+      Files.writeString(tempFile, content);
 
-      // Step 2: Write data to the temporary file
+      LOGGER.debugf("Temporary legacy delete file created at %s",
+              tempFile.toAbsolutePath());
+
+      Files.deleteIfExists(tempFile);
+
+    } catch (IOException e) {
+      LOGGER.errorf(e,
+              "Failed to sync DELETE operation to legacy system for id=%d",
+              id);
+
+      throw new RuntimeException("Legacy delete sync failed", e);
+    }
+  }
+
+  private void writeToFile(String operation, Store store) {
+    try {
+      Path tempFile = Files.createTempFile("store-" + store.id, ".txt");
+
+      LOGGER.debugf("Temporary file created at %s",
+              tempFile.toAbsolutePath());
+
       String content =
-          "Store created. [ name ="
-              + store.name
-              + " ] [ items on stock ="
-              + store.quantityProductsInStock
-              + "]";
-      Files.write(tempFile, content.getBytes());
-      System.out.println("Data written to temporary file.");
+              String.format(
+                      "Store %s. [ id=%d ] [ name=%s ] [ items on stock=%d ]",
+                      operation,
+                      store.id,
+                      store.name,
+                      store.quantityProductsInStock
+              );
 
-      // Step 3: Optionally, read the data back to verify
-      String readContent = new String(Files.readAllBytes(tempFile));
-      System.out.println("Data read from temporary file: " + readContent);
+      Files.writeString(tempFile, content);
 
-      // Step 4: Delete the temporary file when done
-      Files.delete(tempFile);
-      System.out.println("Temporary file deleted.");
+      LOGGER.debug("Data written to temporary legacy file successfully");
 
-    } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
+      Files.deleteIfExists(tempFile);
+
+      LOGGER.debug("Temporary legacy file deleted");
+
+    } catch (IOException e) {
+      LOGGER.errorf(e,
+              "Failed to sync %s operation to legacy system for store id=%d",
+              operation,
+              store.id);
+
+      // VERY IMPORTANT:
+      // Since this runs AFTER COMMIT,
+      // throwing exception won't rollback DB.
+      // But it signals failure to caller / logs properly.
+      throw new RuntimeException("Legacy sync failed", e);
     }
   }
 }
