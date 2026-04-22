@@ -26,7 +26,7 @@ class StoreLegacySyncListenerTest {
     @Test
     void shouldCallCreateWhenEventIsCreated() {
         Store store = createStore();
-        StoreChangedEvent event = new StoreChangedEvent(store, StoreChangedEvent.Operation.CREATED);
+        StoreChangedEvent event = new StoreChangedEvent(store, StoreOperation.CREATED);
 
         listener.onStoreChanged(event);
 
@@ -37,7 +37,7 @@ class StoreLegacySyncListenerTest {
     @Test
     void shouldCallUpdateWhenEventIsUpdated() {
         Store store = createStore();
-        StoreChangedEvent event = new StoreChangedEvent(store, StoreChangedEvent.Operation.UPDATED);
+        StoreChangedEvent event = new StoreChangedEvent(store, StoreOperation.UPDATED);
 
         listener.onStoreChanged(event);
 
@@ -48,7 +48,7 @@ class StoreLegacySyncListenerTest {
     @Test
     void shouldCallDeleteWhenEventIsDeleted() {
         Store store = createStore();
-        StoreChangedEvent event = new StoreChangedEvent(store, StoreChangedEvent.Operation.DELETED);
+        StoreChangedEvent event = new StoreChangedEvent(store, StoreOperation.DELETED);
 
         listener.onStoreChanged(event);
 

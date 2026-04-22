@@ -33,7 +33,7 @@ public class StoreService {
         storeRepository.persist(store);
 
         storeChangedEvent.fire(
-                new StoreChangedEvent(store, StoreChangedEvent.Operation.CREATED)
+                new StoreChangedEvent(store, StoreOperation.CREATED)
         );
 
         return store;
@@ -49,7 +49,7 @@ public class StoreService {
         store.quantityProductsInStock = updatedStore.quantityProductsInStock;
 
         storeChangedEvent.fire(
-                new StoreChangedEvent(store, StoreChangedEvent.Operation.UPDATED)
+                new StoreChangedEvent(store, StoreOperation.UPDATED)
         );
 
         return store;
@@ -68,7 +68,7 @@ public class StoreService {
         }
 
         storeChangedEvent.fire(
-                new StoreChangedEvent(store, StoreChangedEvent.Operation.UPDATED)
+                new StoreChangedEvent(store, StoreOperation.UPDATED)
         );
 
         return store;
@@ -81,7 +81,7 @@ public class StoreService {
         storeRepository.delete(store);
 
         storeChangedEvent.fire(
-                new StoreChangedEvent(store, StoreChangedEvent.Operation.DELETED)
+                new StoreChangedEvent(store, StoreOperation.DELETED)
         );
     }
 
